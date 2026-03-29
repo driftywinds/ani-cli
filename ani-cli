@@ -121,6 +121,21 @@ update_script() {
     exit 0
 }
 
+update_script_dw() {
+    update="$(curl -s -A "$agent" "https://raw.githubusercontent.com/driftywinds/ani-cli/refs/heads/master/ani-cli")" || die "Connection error"
+    update="$(printf '%s\n' "$update" | diff -u "$0" -)"
+    if [ -z "$update" ]; then
+        printf "Script is up to date :)\n"
+    else
+        if printf '%s\n' "$update" | patch "$0" -; then
+            printf "Script has been updated\n"
+        else
+            die "Can't update for some reason!"
+        fi
+    fi
+    exit 0
+}
+
 # checks if dependencies are present
 dep_ch() {
     for dep; do
@@ -490,6 +505,7 @@ while [ $# -gt 0 ]; do
             ;;
         -N | --nextep-countdown) search=nextep ;;
         -U | --update) update_script ;;
+        --updatedw) update_script_dw ;;
         *) query="$(printf "%s" "$query $1" | sed "s|^ ||;s| |+|g")" ;;
     esac
     shift
